@@ -1,7 +1,7 @@
 name: Build Loop
 on:
   schedule:
-    - cron: '0 17 * * *' # Every sunday
+    - cron: '0 10 * * SUN' # Every sunday
   workflow_dispatch:
 
 jobs:
