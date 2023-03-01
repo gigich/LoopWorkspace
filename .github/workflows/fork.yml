@@ -16,3 +16,4 @@ jobs:
           owner: gigich
           base: dev
           head: dev
+          auto_approve: true
