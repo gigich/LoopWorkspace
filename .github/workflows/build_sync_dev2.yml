@@ -1,0 +1,105 @@
+name: 5. Build Loop Dev2 (autosync)
+run-name: Build Loop Dev
+on:
+  workflow_dispatch:
+  
+  ## Remove the "#" sign from the beginning of the line below to get automated builds on push (code changes in your repository)
+  #push:
+
+  ## Remove the "#" sign from the beginning of the two lines below to get automated builds every month
+  schedule:
+    - cron: '0 5 * * *' # Runs at 17:00 UTC on the 1st in every month.
+env:
+  UPSTREAM_REPO: LoopKit/LoopWorkspace
+  UPSTREAM_BRANCH: main
+  TARGET_BRANCH: dev-autosync
+  SYNC_UPSTREAM: 'true' # set to 'false' or 'true' to disable / enable syncing of fork with upstream repository
+
+jobs:
+  secrets:
+    uses: ./.github/workflows/validate_secrets.yml
+    secrets: inherit
+
+  upstream_sync_and_build:
+    needs: [secrets]
+    runs-on: macos-12
+    steps:
+      # Uncomment to manually select latest Xcode if needed
+      - name: Select Latest Xcode
+        run: "sudo xcode-select --switch /Applications/Xcode_14.1.app/Contents/Developer"
+
+      # Checks-out the repo
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          ref: ${{ env.TARGET_BRANCH }} 
+      
+      # Run the sync action
+      - name: Sync upstream changes
+        if: ${{ env.SYNC_UPSTREAM == 'true' }}
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          target_sync_branch: ${{ env.TARGET_BRANCH }}
+          target_branch_checkout_args: --recurse-submodules
+          shallow_since: 6 months ago
+          # REQUIRED 'target_repo_token' exactly like this!
+          target_repo_token: ${{ secrets.GH_PAT }}
+          upstream_sync_branch: ${{ env.UPSTREAM_BRANCH }}
+          upstream_sync_repo: ${{ env.UPSTREAM_REPO }}
+          # upstream_repo_access_token: ${{ secrets.UPSTREAM_REPO_SECRET }}
+          # Set test_mode true to run tests instead of the true action!!
+          test_mode: false
+      
+      # Step 3: Display a sample message based on the sync output var 'has_new_commits'
+      - name: New commits found
+        if: steps.sync.outputs.has_new_commits == 'true'
+        run: echo "New commits were found to sync."
+    
+      - name: No new commits
+        if: steps.sync.outputs.has_new_commits == 'false'
+        run: echo "There were no new commits."
+      
+      - name: Show value of 'has_new_commits'
+        run: echo ${{ steps.sync.outputs.has_new_commits }}
+        
+      - uses: gautamkrishnar/keepalive-workflow@v1 # using the workflow with default settings
+        with:
+          time_elapsed: 27 # Time elapsed from the previous commit to trigger a new automated commit (in days)
+      
+    
+      # Patch Fastlane Match to not print tables
+      - name: Patch Match Tables
+        run: find /usr/local/lib/ruby/gems -name table_printer.rb | xargs sed -i "" "/puts(Terminal::Table.new(params))/d"
+      
+      # Build signed Loop IPA file
+      - name: Fastlane Build & Archive
+        run: fastlane build_loop
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      
+      # Upload to TestFlight
+      - name: Fastlane upload to TestFlight
+        run: fastlane release
+        env:
+          TEAMID: ${{ secrets.TEAMID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
+          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
+          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      # Upload IPA and Symbols
+      - name: Upload IPA and Symbol artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            artifacts
+            buildlog
