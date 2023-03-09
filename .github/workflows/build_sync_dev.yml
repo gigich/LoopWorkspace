@@ -1,5 +1,5 @@
-name: 4a. Build Loop
-run-name: Build Loop
+name: 5. Build Loop Dev (autosync)
+run-name: Build Loop Dev
 on:
   workflow_dispatch:
   
