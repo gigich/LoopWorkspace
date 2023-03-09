@@ -7,8 +7,8 @@ on:
   #push:
 
   ## Remove the "#" sign from the beginning of the two lines below to get automated builds every month
-  schedule:
-    - cron: '0 5 * * *' # Runs at 17:00 UTC on the 1st in every month.
+  #schedule:
+  #  - cron: '0 5 * * *' # Runs at 17:00 UTC on the 1st in every month.
 env:
   UPSTREAM_REPO: LoopKit/LoopWorkspace
   UPSTREAM_BRANCH: dev
