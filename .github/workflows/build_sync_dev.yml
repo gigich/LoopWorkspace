@@ -11,7 +11,7 @@ on:
     - cron: '0 5 * * *' # Runs at 17:00 UTC on the 1st in every month.
 env:
   UPSTREAM_REPO: LoopKit/LoopWorkspace
-  UPSTREAM_BRANCH: main
+  UPSTREAM_BRANCH: dev
   TARGET_BRANCH: dev-autosync
 
 jobs:
