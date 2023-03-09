@@ -1,4 +1,4 @@
-name: 4. Build Loop
+name: 4a. Build Loop
 run-name: Build Loop
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
 env:
   UPSTREAM_REPO: LoopKit/LoopWorkspace
   UPSTREAM_BRANCH: main
-  TARGET_BRANCH: main
+  TARGET_BRANCH: main-autosync
 
 jobs:
   secrets:
