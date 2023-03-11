@@ -12,7 +12,7 @@ on:
 env:
   UPSTREAM_REPO: LoopKit/LoopWorkspace
   UPSTREAM_BRANCH: dev
-  TARGET_BRANCH: dev-autosync
+  TARGET_BRANCH: dev
   SYNC_UPSTREAM: 'true' # set to 'false' or 'true' to disable / enable syncing of fork with upstream repository
 
 jobs:
