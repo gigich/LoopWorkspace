@@ -1,8 +1,8 @@
 name: 4. Build Loop
 run-name: Build Loop
 on:
-  schedule:
-    - cron: '0 4 * * SUN' # Every sunday
+  #schedule:
+  #  - cron: '0 4 * * SUN' # Every sunday
   workflow_dispatch:
 
 jobs:
